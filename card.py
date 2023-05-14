@@ -4,16 +4,25 @@ class Card:
     RANKS = [list(range(2, 15))]
     SUITS = ["diamonds", "clubs", "hearts", "spades"]
     ICONS = {"diamonds": "♦", "clubs": "♣", "hearts": "♥", "spades": "♠"}
+    PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+    SUIT_CHAR_TO_INT = {
+        "spades": 1,  # spades 0001
+        "hearts": 2,  # hearts 0010
+        "diamonds": 4,  # diamonds 0100
+        "clubs": 8,  # clubs 1000
+    }
 
     def __init__(self, rank, suit):
         """Istantiate the card."""
         assert isinstance(rank, (int, str))
         if isinstance(rank, str):
             rank = self._rank_str_to_int(rank)
-        assert (rank >= 2 & rank <= 14)
+        assert (rank >= 2 and rank <= 14)
         assert (suit in Card.SUITS)
         self._rank = rank
         self._suit = suit
+        self._rank_prime = Card.PRIMES[rank-2]
+        self._suit_int = Card.SUIT_CHAR_TO_INT[suit]
 
     def _rank_str_to_int(self, string):
         """Convert rank from type string to type int"""
@@ -58,6 +67,12 @@ class Card:
 
     def getSuit(self):
         return self._suit
+
+    def getRankPrime(self):
+        return self._rank_prime
+
+    def getSuitInt(self):
+        return self._suit_binary
 
     def __repr__(self):
         rank_str = {
