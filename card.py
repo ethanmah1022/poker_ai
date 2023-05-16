@@ -1,7 +1,7 @@
 class Card:
     """Card to represent a poker card."""
 
-    RANKS = [list(range(2, 15))]
+    RANKS = list(range(2, 15))
     SUITS = ["diamonds", "clubs", "hearts", "spades"]
     ICONS = {"diamonds": "♦", "clubs": "♣", "hearts": "♥", "spades": "♠"}
     PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
@@ -72,7 +72,7 @@ class Card:
         return self._rank_prime
 
     def getSuitInt(self):
-        return self._suit_binary
+        return self._suit_int
 
     def __repr__(self):
         rank_str = {

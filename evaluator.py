@@ -1,7 +1,7 @@
 import itertools
 
 from card import Card
-from lookuptables import deck, flush_lookup, non_flush_lookup
+from lookuptables import flush_lookup, non_flush_lookup
 
 
 class Evaluator:
@@ -12,7 +12,7 @@ class Evaluator:
         """
         product = 1
         for card in cards:
-            product *= card.rank_prime
+            product *= card.getRankPrime()
         return product
 
     def evaluate_rank(cards, board):
@@ -47,13 +47,13 @@ class Evaluator:
 
         prime = Evaluator.prime_product_rank(cards)
         # if flush
-        if cards[0].getSuitInt & cards[1].getSuitInt & cards[2].getSuitInt \
-                & cards[3].getSuitInt & cards[4].getSuitInt & 0xF:
+        if cards[0].getSuitInt() & cards[1].getSuitInt() & cards[2].getSuitInt() \
+                & cards[3].getSuitInt() & cards[4].getSuitInt() & 0xF:
             return flush_lookup[prime]
         else:
             return non_flush_lookup[prime]
 
-    def get_rank_class(self, rank):
+    def get_rank_class(rank):
         """Returns the class of hand from the numerical hand ranking from evaluate."""
         if rank == 1:
             return "Royal Flush"
@@ -71,10 +71,10 @@ class Evaluator:
             return "Three of a Kind"
         elif rank <= 3325:
             return "Two Pair"
-        elif rank <= 3325:
-            return "Two Pair"
-        elif rank <= 7462:
+        elif rank <= 6185:
             return "One Pair"
+        elif rank <= 7462:
+            return "High Card"
         else:
             raise Exception("Inavlid hand rank, cannot return rank class")
 
@@ -82,9 +82,12 @@ class Evaluator:
         """
         Return the percentile of the best 5 card hand made from these
         cards, against an equivalent number of cards.
+        NOTE: Takes very long to run for HU NLHE.
         """
+        deck = set(Card(rank, suit)
+                   for suit in Card.SUITS for rank in Card.RANKS)
         cards = list(hand) + list(board)
-        rank = Evaluator.evaluate_rank(cards)
+        rank = Evaluator.evaluate_rank(hand, board)
         all_opponent_hands = list(
             itertools.combinations(deck - set(hand), len(cards)))
         hands_beaten = 0
