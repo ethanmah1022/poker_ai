@@ -1,24 +1,3 @@
-from card import Card
-
-"""
-    deck consists of all 52 cards.
-"""
-deck = set((
-        Card(2,"diamonds"), Card(2,"clubs"), Card(2,"hearts"), Card(2,"spades"),
-        Card(3,"diamonds"), Card(3,"clubs"), Card(3,"hearts"), Card(3,"spades"),
-        Card(4,"diamonds"), Card(4,"clubs"), Card(4,"hearts"), Card(4,"spades"),
-        Card(5,"diamonds"), Card(5,"clubs"), Card(5,"hearts"), Card(5,"spades"),
-        Card(6,"diamonds"), Card(6,"clubs"), Card(6,"hearts"), Card(6,"spades"),
-        Card(7,"diamonds"), Card(7,"clubs"), Card(7,"hearts"), Card(7,"spades"),
-        Card(8,"diamonds"), Card(8,"clubs"), Card(8,"hearts"), Card(8,"spades"),
-        Card(9,"diamonds"), Card(9,"clubs"), Card(9,"hearts"), Card(9,"spades"),
-        Card(10,"diamonds"), Card(10,"clubs"), Card(10,"hearts"), Card(10,"spades"),
-        Card(11,"diamonds"), Card(11,"clubs"), Card(11,"hearts"), Card(11,"spades"),
-        Card(12,"diamonds"), Card(12,"clubs"), Card(12,"hearts"), Card(12,"spades"),
-        Card(13,"diamonds"), Card(13,"clubs"), Card(13,"hearts"), Card(13,"spades"),
-        Card(14,"diamonds"), Card(14,"clubs"), Card(14,"hearts"), Card(14,"spades")
-    ))
-
 """
    flush_lookup is the lookup table for all flush hands. Keys are the prime
    product of the rank bits, and values are the ranking. Possible ranking values
