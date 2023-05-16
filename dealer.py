@@ -60,3 +60,11 @@ class Dealer(object):
         """Deal the river public cards to the `table`."""
         self.deck.pop(0)
         return self.deal_community_cards(1)
+
+    def reset(self, players: List[Player]):
+        """Reset the Dealer Object back to empty"""
+        self.board = []
+        for player in players:
+            player.cards = []
+        self.reset_deck()
+
