@@ -61,6 +61,8 @@ class Player:
         self.fold_probability = fold_probability
         self.raise_probability = raise_probability
         self.call_probability = call_probability
+        if not np.isclose(fold_probability+raise_probability+call_probability, 1.0):
+            raise ValueError(f'Probabilities passed must sum to one.')
 
         #initializing the distribution for any possible scenarios
 
