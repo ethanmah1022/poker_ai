@@ -51,7 +51,6 @@ class Player:
     # 2: 4 Pot
 
     starting_raise_distribution = [.25] * 4
-    
 
     def __init__(self, initial_bigblinds: int, fold_probability=0.1,
                  raise_probability=0.1, call_probability=0.8):
@@ -62,6 +61,35 @@ class Player:
         self.fold_probability = fold_probability
         self.raise_probability = raise_probability
         self.call_probability = call_probability
+
+        #initializing the distribution for any possible scenarios
+        self.inpos_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.inpos_distribution[i][j] = self.starting_distribution.copy()
+        self.opos_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.opos_distribution[i][j] = self.starting_distribution.copy()
+        self.inpos_b_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.inpos_b_distribution[i][j] = self.starting_bet_distribution.copy()
+        self.inpos_r_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.inpos_r_distribution[i][j] = self.starting_raise_distribution.copy()
+        self.opos_b_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.opos_b_distribution[i][j] = self.starting_bet_distribution.copy()
+        self.opos_r_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        for i in range(4):
+            for j in range(9):
+                self.opos_r_distribution[i][j] = self.starting_raise_distribution.copy()
+        
+
+
 
     def is_all_in(self) -> bool:
         """Return if the player is all in or not."""
