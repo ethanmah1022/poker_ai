@@ -1,7 +1,7 @@
 import numpy as np
 from evaluator import Evaluator
 import strength
-
+import random
 
 class Player:
     """Abstract base class for all poker-playing agents.
@@ -41,6 +41,7 @@ class Player:
     # 6: 3 Pot
     # 7: 4 Pot
 
+    BET_SIZE = [1/3, 1/2, 3/4, 1, 1.5, 2, 2.5, 3, 4]
     starting_bet_distribution = [1/8] * 8
 
 
@@ -50,6 +51,8 @@ class Player:
     # 2: 2.5 Pot
     # 2: 4 Pot
 
+
+    RAISE_SIZE = [2/3, 1.5, 2.5, 4]
     starting_raise_distribution = [1/4] * 4
 
     def __init__(self, initial_bigblinds: int, fold_probability=0.1,
@@ -86,30 +89,18 @@ class Player:
         # 8. High Card
 
 
-        self.inpos_distribution = [[[] for _ in range(9)] for _ in range(4)]
+        self.distribution = [[[] for _ in range(9)] for _ in range(4)]
         for i in range(4):
             for j in range(9):
-                self.inpos_distribution[i][j] = self.starting_distribution.copy()
-        self.opos_distribution = [[[] for _ in range(9)] for _ in range(4)]
+                self.distribution[i][j] = self.starting_distribution.copy()
+        self.b_distribution = [[[] for _ in range(9)] for _ in range(4)]
         for i in range(4):
             for j in range(9):
-                self.opos_distribution[i][j] = self.starting_distribution.copy()
-        self.inpos_b_distribution = [[[] for _ in range(9)] for _ in range(4)]
+                self.b_distribution[i][j] = self.starting_bet_distribution.copy()
+        self.r_distribution = [[[] for _ in range(9)] for _ in range(4)]
         for i in range(4):
             for j in range(9):
-                self.inpos_b_distribution[i][j] = self.starting_bet_distribution.copy()
-        self.inpos_r_distribution = [[[] for _ in range(9)] for _ in range(4)]
-        for i in range(4):
-            for j in range(9):
-                self.inpos_r_distribution[i][j] = self.starting_raise_distribution.copy()
-        self.opos_b_distribution = [[[] for _ in range(9)] for _ in range(4)]
-        for i in range(4):
-            for j in range(9):
-                self.opos_b_distribution[i][j] = self.starting_bet_distribution.copy()
-        self.opos_r_distribution = [[[] for _ in range(9)] for _ in range(4)]
-        for i in range(4):
-            for j in range(9):
-                self.opos_r_distribution[i][j] = self.starting_raise_distribution.copy()
+                self.r_distribution[i][j] = self.starting_raise_distribution.copy()
         
 
 
@@ -130,14 +121,68 @@ class Player:
         # if facing bet, can FOLD, CALL, RAISE
         # if selected action is BET or CALL, must somehow also return amount...
         dice_roll = np.random.sample()
-        bound_1 = self.fold_probability
-        bound_2 = self.fold_probability + self.raise_probability
-        if 0.0 < dice_roll <= bound_1:
-            return Player.FOLD
-        elif bound_1 < dice_roll <= bound_2:
-            return Player.RAISE
-        else:
-            return Player.CALL
+        strength = Evaluator.evaluate_rank(self.cards, board)
+        
+        # dist represents the distribution we are using, b represents whether we are facing a bet or not
+        def determine_action(dist, b, stage, stren):
+
+            def determine_bet(dist):
+                return random.choices(self.BET_SIZE, weights=tuple(dist), k = 1)
+            
+            def determine_raise(dist):
+                return random.choices(self.RAISE_SIZE, weights=tuple(dist), k = 1)
+            
+            r = random.choices(self.ACTIONS, weights=tuple(dist), k = 1)
+            if b:
+                if r == self.BET or r == self.CHECK:
+                    self.determine_action(dist, b)
+                elif r == self.CALL:
+                    return (self.CALL, 0)
+                elif r == self.FOLD:
+                    return (self.FOLD, 0)
+                elif r == self.RAISE:
+                    return (self.RAISE, determine_raise(self.r_distribution[stage][stren]))
+            else:
+                if r == self.RAISE or r == self.FOLD or r == self.CALL:
+                    determine_action(dist, b)
+                elif r == self.BET:
+                    return (self.BET, determine_bet(self.b_distribution[stage][stren]))
+                elif r == self.CHECK:
+                    return (self.CHECK, 0)
+                    
+
+        if len(board) == 0:
+            strength = strength.starting_eval(Evaluator.prime_product_rank(self.cards))
+            dist = self.distribution[self.PREFLOP][strength]
+            return determine_action(dist, bets[0] == bets[1] and bets[0] == 0, self.PREFLOP, strength)
+        elif len(board) == 3:
+            strength = strength.rank_breakdown(Evaluator.evaluate_rank(self.cards, board))
+            dist = self.distribution[self.FLOP][strength]
+            return determine_action(dist, bets[0] == bets[1] and bets[0] == 0, self.FLOP, strength)
+        elif len(board) == 4:
+            strength = strength.rank_breakdown(Evaluator.evaluate_rank(self.cards, board))
+            dist = self.distribution[self.TURN][strength]
+            return determine_action(dist, bets[0] == bets[1] and bets[0] == 0, self.TURN, strength)
+        elif len(board) == 5:
+            strength = strength.rank_breakdown(Evaluator.evaluate_rank(self.cards, board))
+            dist = self.distribution[self.RIVER][strength]
+            return determine_action(dist, bets[0] == bets[1] and bets[0] == 0, self.RIVER, strength)
+        
+            
+
+
+        # bound_1 = self.fold_probability
+        # bound_2 = self.fold_probability + self.raise_probability
+        # if 0.0 < dice_roll <= bound_1:
+        #     return Player.FOLD
+        # elif bound_1 < dice_roll <= bound_2:
+        #     return Player.RAISE
+        # else:
+        #     return Player.CALL
+    
+
+        
+
 
     def __repr__(self):
         return '<n_bigblinds={}, cards={}, folded={}>'.format(
