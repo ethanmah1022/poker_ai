@@ -1,5 +1,6 @@
 import numpy as np
 from evaluator import Evaluator
+import strength
 
 
 class Player:
@@ -20,6 +21,37 @@ class Player:
     RAISE = 3
     CHECK = 4
     ACTIONS = [FOLD, BET, CALL, RAISE, CHECK]
+
+    PREFLOP = 0
+    FLOP = 1
+    TURN = 2
+    RIVER = 3
+
+    # default starting distribution
+    starting_distribution = [.2] * 8
+    
+    # Bet size:
+    # 0: 1/3 Pot
+    # 1: 1/2 Pot
+    # 2: 3/4 Pot
+    # 3: Pot
+    # 4: 1.5 Pot
+    # 5: 2 Pot
+    # 5: 2.5 Pot
+    # 6: 3 Pot
+    # 7: 4 Pot
+
+    starting_bet_distribution = [.125] * 8
+
+
+    # Raise size:
+    # 0: 2/3 Pot
+    # 1: 1.5 Pot
+    # 2: 2.5 Pot
+    # 2: 4 Pot
+
+    starting_raise_distribution = [.25] * 4
+    
 
     def __init__(self, initial_bigblinds: int, fold_probability=0.1,
                  raise_probability=0.1, call_probability=0.8):
@@ -61,3 +93,7 @@ class Player:
             self.n_bigblinds,
             self.cards,
             not self.is_active)
+
+# a class containing all distributions of a player
+
+
