@@ -144,7 +144,7 @@ class GameEngine(object):
             return self.players[1:] + self.players[:1]
         return self.players
 
-    def _round_cleanup(self):
+    def round_cleanup(self):
         """Resetting board, deck, and player's cards."""
         self.dealer.reset(self.players)
 
