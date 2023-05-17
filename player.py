@@ -28,7 +28,7 @@ class Player:
     RIVER = 3
 
     # default starting distribution
-    starting_distribution = [.2] * 8
+    starting_distribution = [1/5] * 8
     
     # Bet size:
     # 0: 1/3 Pot
@@ -41,7 +41,7 @@ class Player:
     # 6: 3 Pot
     # 7: 4 Pot
 
-    starting_bet_distribution = [.125] * 8
+    starting_bet_distribution = [1/8] * 8
 
 
     # Raise size:
@@ -50,7 +50,7 @@ class Player:
     # 2: 2.5 Pot
     # 2: 4 Pot
 
-    starting_raise_distribution = [.25] * 4
+    starting_raise_distribution = [1/4] * 4
 
     def __init__(self, initial_bigblinds: int, fold_probability=0.1,
                  raise_probability=0.1, call_probability=0.8):
@@ -63,6 +63,27 @@ class Player:
         self.call_probability = call_probability
 
         #initializing the distribution for any possible scenarios
+
+        # Starting Hand breakdown index
+        # 0. Best Startings (AA, KK)
+        # 1. Second Premiums (AK, QQ)
+        # 2. Third Premiums (JJ, 1010, AQ)
+        # 3. Two High Cards, 99 88 
+        # 4. Remaining Pocket Pairs (77, 66 ...)
+        # 5. Rest of the Crowd
+
+        # Best 5 Cards breakdown index
+        # 0. Straight Flush
+        # 1. Quads
+        # 2. Full House
+        # 3. Flush
+        # 4. Straight
+        # 5. Trips
+        # 6. Two Pair
+        # 7. Pair
+        # 8. High Card
+
+
         self.inpos_distribution = [[[] for _ in range(9)] for _ in range(4)]
         for i in range(4):
             for j in range(9):
