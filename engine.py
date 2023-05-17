@@ -107,7 +107,8 @@ class GameEngine(object):
                     player.n_bigblinds -= bets[(idx+1) % 2]-bets[idx]
                     bets[idx] = bets[(idx+1) % 2]
                 elif action == Player.RAISE:
-                    raise_amount = 50  # again, must be returned from take_action
+                    # again, must be returned from take_action
+                    raise_amount = bets[(idx+1) % 2] * 2.5
                     # raise_amount is difference from initial bet, NOT total bet
                     player.n_bigblinds -= bets[(idx+1) % 2] + raise_amount
                     bets[idx] += raise_amount

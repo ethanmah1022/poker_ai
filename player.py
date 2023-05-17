@@ -1,3 +1,7 @@
+import numpy as np
+from evaluator import Evaluator
+
+
 class Player:
     """Abstract base class for all poker-playing agents.
 
@@ -17,11 +21,15 @@ class Player:
     CHECK = 4
     ACTIONS = [FOLD, BET, CALL, RAISE, CHECK]
 
-    def __init__(self, initial_bigblinds: int):
+    def __init__(self, initial_bigblinds: int, fold_probability=0.1,
+                 raise_probability=0.1, call_probability=0.8):
         """Istantiate a player."""
         self.n_bigblinds = initial_bigblinds
         self.cards = []
         self.is_active = True
+        self.fold_probability = fold_probability
+        self.raise_probability = raise_probability
+        self.call_probability = call_probability
 
     def is_all_in(self) -> bool:
         """Return if the player is all in or not."""
@@ -34,10 +42,19 @@ class Player:
         action, agents receive the current game state and have to emit the next
         state. Returns one of FOLD, BET, CALL, RAISE, CHECK
         """
-        #to-do:
-        #if other opponent has bet 0, allowed to check, else not allowed
-        #if facing bet, can FOLD, CALL, RAISE
-        #if selected action is BET or CALL, must somehow also return amount...
+        # to-do:
+        # if other opponent has bet 0, allowed to check, else not allowed
+        # if facing bet, can FOLD, CALL, RAISE
+        # if selected action is BET or CALL, must somehow also return amount...
+        dice_roll = np.random.sample()
+        bound_1 = self.fold_probability
+        bound_2 = self.fold_probability + self.raise_probability
+        if 0.0 < dice_roll <= bound_1:
+            return Player.FOLD
+        elif bound_1 < dice_roll <= bound_2:
+            return Player.RAISE
+        else:
+            return Player.CALL
 
     def __repr__(self):
         return '<n_bigblinds={}, cards={}, folded={}>'.format(
