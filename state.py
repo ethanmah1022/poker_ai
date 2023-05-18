@@ -14,6 +14,7 @@ from player import Player
 
 InfoSetLookupTable = Dict[str, Dict[Tuple[int, ...], str]]
 
+
 class PokerState(object):
     """The state of a poker game at some given point in time.
 
@@ -21,16 +22,18 @@ class PokerState(object):
     action is applied via the `PokerState.new_state` method.
     """
 
-    def __init__(self,players: List[Player]):
+    def __init__(self, players: List[Player]):
         """Initialise state."""
-        n_players = 2
-        assert(n_players==2)
-       
-        self._poker_engine = GameEngine(players)
+        assert(len(players) == 2)
 
-        #Setup game
+        self._poker_engine = GameEngine(players)
+        self._n_bigblinds = players[0].n_bigblinds
+
+        # Setup game
         self._poker_engine.round_setup()
-        self._poker_engine.deal_private_cards(self.players)
+        self._current_bets = [0.5, 1]
+        self._poker_engine.dealer.deal_private_cards(
+            self._poker_engine.players)
         self._history: Dict[str, List[str]] = collections.defaultdict(list)
         self._betting_stage = "PREFLOP"
         self._betting_stage_to_round: Dict[str, int] = {
@@ -40,7 +43,7 @@ class PokerState(object):
             "RIVER": 3,
             "SHOWDOWN": 4,
         }
-        player_i_order: List[int] = [p_i for p_i in range(n_players)]
+        player_i_order: List[int] = [p_i for p_i in range(len(players))]
         self._player_i_lut: Dict[str, List[int]] = {
             "PREFLOP": player_i_order,
             "FLOP": player_i_order[1:] + player_i_order[:1],
@@ -49,7 +52,6 @@ class PokerState(object):
             "SHOWDOWN": player_i_order[1:] + player_i_order[:1],
             "TERMINAL": player_i_order[1:] + player_i_order[:1],
         }
-        self._current_bets = [0,0]
         self._first_move_of_current_round = True
         self._reset_betting_round_state()
         for player in self.players:
@@ -60,7 +62,7 @@ class PokerState(object):
         """Return a helpful description of object in strings and debugger."""
         return f"<ShortDeckPokerState player_i={self.player_i} betting_stage={self._betting_stage}>"
 
-    def apply_action(self, action_str: Optional[str]):
+    def apply_action(self, action):
         """Create a new state after applying an action.
         Parameters
         ----------
@@ -71,6 +73,8 @@ class PokerState(object):
 
         Returns
         -------
+        action : int
+            One of Player.ACTIONS.
         new_state : PokerState
             A poker state instance that represents the game in the next
             timestep, after the action has been applied.
@@ -81,31 +85,25 @@ class PokerState(object):
         # An action has been made, so alas we are not in the first move of the
         # current betting round.
         new_state._first_move_of_current_round = False
-        action, amt = self.current_player.take_action(self._poker_engine.dealer.board,self._current_bets)
+        add_to_pot = 0
         if action == Player.CALL:
-            self._current_bets[self.player_i] = self._current_bets[(self.player_i+1)%2]
-        else:
-            self._current_bets[self.player_i] += amt*self._poker_engine.pot
-        # if action_str == "call":
-
-        #     action = new_state.current_player.call(players=new_state.players)
-        #     logger.debug("calling")
-        # elif action_str == "fold":
-        #     action = new_state.current_player.fold()
-        # elif action_str == "raise":
-        #     bet_n_chips = new_state.big_blind
-        #     if new_state._betting_stage in {"turn", "river"}:
-        #         bet_n_chips *= 2
-        #     biggest_bet = max(p.n_bet_chips for p in new_state.players)
-        #     n_chips_to_call = biggest_bet - new_state.current_player.n_bet_chips
-        #     raise_n_chips = bet_n_chips + n_chips_to_call
-        #     action = new_state.current_player.raise_to(n_chips=raise_n_chips)
-        #     new_state._n_raises += 1
-        # else:
-        #     raise ValueError(
-        #         f"Expected action to be derived from class Action, but found "
-        #         f"type {type(action)}."
-        #     )
+            add_to_pot = self._current_bets[(
+                self.player_i+1) % 2] - self._current_bets[self.player_i]
+            self._current_bets[self.player_i] = self._current_bets[(
+                self.player_i+1) % 2]
+        elif action in Player.ACTIONS_BET:
+            add_to_pot = Player.bet_dict[action] * self._poker_engine.pot
+            self._current_bets[self.player_i] += Player.bet_dict[action] * \
+                self._poker_engine.pot
+        elif action in Player.ACTIONS_RAISE:
+            add_to_pot = Player.raise_dict[action] * self._poker_engine.pot
+            self._current_bets[self.player_i] += Player.raise_dict[action] * \
+                self._poker_engine.pot
+        elif action == Player.FOLD:
+            new_state.current_player.is_active = False
+        new_state._current_bets = self._current_bets
+        new_state.current_player.n_bigblinds -= add_to_pot
+        new_state._poker_engine.pot += add_to_pot
 
         # Update the new state.
         new_state._history[new_state.betting_stage].append(action)
@@ -116,21 +114,25 @@ class PokerState(object):
             # If we have finished betting, (i.e: All players have put the
             # same amount of chips in), then increment the stage of
             # betting.
-            finished_betting = not new_state._poker_engine.more_betting_needed(self._current_bets)
+
+            finished_betting = not(
+                new_state._poker_engine.more_betting_needed(self._current_bets))
             if finished_betting and new_state.all_players_have_actioned:
                 # We have done atleast one full round of betting, increment
                 # stage of the game.
                 new_state._increment_stage()
                 new_state._reset_betting_round_state()
+                new_state._current_bets = [0, 0]
                 new_state._first_move_of_current_round = True
-            if not new_state.current_player.is_active:
-                new_state._betting_stage = "TERMINAL"
-                break
-            elif new_state.current_player.is_active:
+            # print("BOOLEAN2: ", new_state.current_player.is_active)
+            # if not new_state.current_player.is_active:
+            #     new_state._betting_stage = "TERMINAL"
+            #     break
+            if new_state.current_player.is_active:
                 if new_state._poker_engine.n_players_with_moves == 1:
                     # No players left.
                     new_state._betting_stage = "TERMINAL"
-                    if not new_state.dealer.board:
+                    if not new_state._poker_engine.dealer.board:
                         new_state._poker_engine.dealer.deal_flop()
                 # Now check if the game is terminal.
                 if new_state._betting_stage in {"TERMINAL", "SHOWDOWN"}:
@@ -151,6 +153,7 @@ class PokerState(object):
     def _reset_betting_round_state(self):
         """Reset the state related to counting types of actions."""
         self._all_players_have_made_action = False
+        self._current_bets == [0, 0]
         self._n_actions = 0
         self._n_raises = 0
         self._player_i_index = 0
@@ -237,38 +240,15 @@ class PokerState(object):
     @property
     def info_set(self) -> str:
         """Get the information set for the current player."""
-        cards = sorted(
-            self.current_player.cards,
-            key=operator.attrgetter("eval_card"),
-            reverse=True,
-        )
-        cards += sorted(
-            self._table.community_cards,
-            key=operator.attrgetter("eval_card"),
-            reverse=True,
-        )
-        if self._pickle_dir:
-            lookup_cards = tuple([card.eval_card for card in cards])
-        else:
-            lookup_cards = tuple(cards)
-        try:
-            cards_cluster = self.card_info_lut[self._betting_stage][lookup_cards]
-        except KeyError:
-            if self.betting_stage not in {"terminal", "show_down"}:
-                raise ValueError("You should have these cards in your lut.")
-            return "default info set, please ensure you load it correctly"
         # Convert history from a dict of lists to a list of dicts as I'm
         # paranoid about JSON's lack of care with insertion order.
         info_set_dict = {
-            "cards_cluster": cards_cluster,
             "history": [
-                {betting_stage: [str(action) for action in actions]}
+                {betting_stage: [action for action in actions]}
                 for betting_stage, actions in self._history.items()
             ],
         }
-        return json.dumps(
-            info_set_dict, separators=(",", ":"), cls=utils.io.NumpyJSONEncoder
-        )
+        return json.dumps(info_set_dict, separators=(",", ":"))
 
     @property
     def is_terminal(self) -> bool:
@@ -282,25 +262,33 @@ class PokerState(object):
     @property
     def players(self) -> List[Player]:
         """Returns players in table."""
-        return self.players
+        return self._poker_engine.players
 
     @property
     def current_player(self) -> Player:
         """Returns a reference to player that makes a move for this state."""
-        return self.players[self.player_i]
+        return self._poker_engine.players[self.player_i]
+
+    @property
+    def payout(self) -> Dict[int, int]:
+        """Return player index to payout number of chips dictionary."""
+        n_chips_delta = dict()
+        for player_i, player in enumerate(self.players):
+            n_chips_delta[player_i] = player.n_bigblinds - self._n_bigblinds
+        return n_chips_delta
 
     @property
     def legal_actions(self) -> List[Optional[str]]:
         """Return the actions that are legal for this game state."""
         actions: List[Optional[str]] = []
         if self.current_player.is_active:
-            if self._current_bets == [0,0]:
-                #check, bet 1/3,1/2,2/3,1,2x pot
-                actions += [Player.CHECK,Player.BET_1,Player.BET_2,Player.BET_3,
-                            Player.BET_4,Player.BET_5,Player.BET_6]
+            if self._betting_stage == "PREFLOP" and self._current_bets == [1, 1]:
+                actions += [Player.CHECK] + Player.ACTIONS_RAISE
+            elif self._current_bets == [0, 0]:
+                # check, bet 1/3,1/2,2/3,1,2x pot
+                actions += [Player.CHECK] + Player.ACTIONS_BET
             else:
-                actions += [Player.FOLD,Player.CALL,Player.RAISE_1,Player.RAISE_2,
-                            Player.RAISE_3,Player.RAISE_4]
+                actions += [Player.FOLD, Player.CALL] + Player.ACTIONS_RAISE
         else:
             actions += [None]
         return actions

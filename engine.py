@@ -69,7 +69,6 @@ class GameEngine(object):
             pass
             # logger.debug("Skipping betting as no players are free to bet.")
 
-    @property
     def more_betting_needed(self, bets) -> bool:
         """Returns if more bets are required to terminate betting.
 
@@ -108,7 +107,7 @@ class GameEngine(object):
                     bets[idx] = bets[(idx+1) % 2]
                 elif action == Player.RAISE:
                     # again, must be returned from take_action
-                    raise_amount = bets[(idx+1) % 2] * 2.5
+                    raise_amount = sum(bets) * 2.5
                     # raise_amount is difference from initial bet, NOT total bet
                     player.n_bigblinds -= bets[(idx+1) % 2] + raise_amount
                     bets[idx] += raise_amount
@@ -130,8 +129,8 @@ class GameEngine(object):
             first_player_rank = self.handeval(
                 self.players[0].cards, self.dealer.board)
             second_player_rank = self.handeval(
-                self.players[0].cards, self.dealer.board)
-            if first_player_rank < second_player_rank:
+                self.players[1].cards, self.dealer.board)
+            if first_player_rank < second_player_rank:  # only add to winners
                 self.players[0].n_bigblinds += self.pot
             elif first_player_rank > second_player_rank:
                 self.players[1].n_bigblinds += self.pot
@@ -152,7 +151,7 @@ class GameEngine(object):
     @property
     def n_players_with_moves(self) -> int:
         """Returns the amount of players that can freely make a move."""
-        return sum(p.is_active and not p.is_all_in for p in self.players)
+        return sum(p.is_active and not p.is_all_in() for p in self.players)
 
     @property
     def n_active_players(self) -> int:
