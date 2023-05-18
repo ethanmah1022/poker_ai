@@ -148,11 +148,14 @@ class Player:
         # if selected action is BET or CALL, must somehow also return amount...
         dice_roll = np.random.sample()
         strength = Evaluator.evaluate_rank(self.cards, board)
+
+        self.cur_strength = strength
         
         # dist represents the distribution we are using, b represents whether we are facing a bet or not
         def determine_action(dist, b, stage, stren):
             
             r = random.choices(self.ACTIONS, weights=tuple(dist), k = 1)
+
             if b:
                 if r >= self.BET_1 and r <= self.BET_8 or r == self.CHECK:
                     self.determine_action(dist, b)
