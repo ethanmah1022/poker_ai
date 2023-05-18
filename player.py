@@ -15,12 +15,39 @@ class Player:
     of all players' contributions. If player is not active, represents folded.
     """
 
+    # FOLD = 0
+    # CALL = 1
+    # BET = 2
+    # RAISE = 3
+    # CHECK = 4
+    # ACTIONS = [FOLD, BET, CALL, RAISE, CHECK]
+
     FOLD = 0
     CALL = 1
-    BET = 2
-    RAISE = 3
-    CHECK = 4
-    ACTIONS = [FOLD, BET, CALL, RAISE, CHECK]
+    BET_1 = 2
+    BET_2 = 3
+    BET_3 = 4
+    BET_4 = 5
+    BET_5 = 6
+    BET_6 = 7
+    BET_7 = 8
+    BET_8 = 9
+    RAISE_1 = 10
+    RAISE_2 = 11
+    RAISE_3 = 12
+    RAISE_4 = 13
+    CHECK = 14
+
+    ACTIONS = [FOLD, CALL, BET_1, BET_2, BET_3, BET_4, BET_5, BET_6, BET_7, BET_8, RAISE_1, RAISE_2, RAISE_3, RAISE_4, CHECK]
+
+    bet_arr = [1/3, 1/2, 2/3, 1, 1.5, 2, 3, 4]
+
+    bet_dt = {BET_1 : 1/3, BET_2 : 1/2, BET_3 : 2/3, BET_4: 1, BET_5 : 1.5, BET_6 : 2, BET_7 : 3, BET_8 : 4}
+
+    raise_arr = [2/3, 1.5, 2.5, 4]
+
+    raise_dt = {RAISE_1 : 2/3, RAISE_2 : 1.5, RAISE_3 : 2.5, RAISE_4 : 4}
+
 
     PREFLOP = 0
     FLOP = 1
@@ -28,16 +55,15 @@ class Player:
     RIVER = 3
 
     # default starting distribution
-    starting_distribution = [1/5] * 8
+    starting_distribution = [1/ len(ACTIONS)] * len(ACTIONS)
     
     # Bet size:
     # 0: 1/3 Pot
     # 1: 1/2 Pot
-    # 2: 3/4 Pot
+    # 2: 2/3 Pot
     # 3: Pot
     # 4: 1.5 Pot
     # 5: 2 Pot
-    # 5: 2.5 Pot
     # 6: 3 Pot
     # 7: 4 Pot
 
@@ -125,30 +151,44 @@ class Player:
         
         # dist represents the distribution we are using, b represents whether we are facing a bet or not
         def determine_action(dist, b, stage, stren):
-
-            def determine_bet(dist):
-                return random.choices(self.BET_SIZE, weights=tuple(dist), k = 1)
-            
-            def determine_raise(dist):
-                return random.choices(self.RAISE_SIZE, weights=tuple(dist), k = 1)
             
             r = random.choices(self.ACTIONS, weights=tuple(dist), k = 1)
             if b:
-                if r == self.BET or r == self.CHECK:
+                if r >= self.BET_1 and r <= self.BET_8 or r == self.CHECK:
                     self.determine_action(dist, b)
                 elif r == self.CALL:
                     return (self.CALL, 0)
                 elif r == self.FOLD:
                     return (self.FOLD, 0)
-                elif r == self.RAISE:
-                    return (self.RAISE, determine_raise(self.r_distribution[stage][stren]))
+                elif r == self.RAISE_1:
+                    return (self.RAISE_1, self.raise_dt[self.RAISE_1])
+                elif r == self.RAISE_2:
+                    return (self.RAISE_2, self.raise_dt[self.RAISE_2])
+                elif r == self.RAISE_3:
+                    return (self.RAISE_2, self.raise_dt[self.RAISE_3])
+                elif r == self.RAISE_4:
+                    return (self.RAISE_2, self.raise_dt[self.RAISE_4])
             else:
                 if r == self.RAISE or r == self.FOLD or r == self.CALL:
                     determine_action(dist, b)
-                elif r == self.BET:
-                    return (self.BET, determine_bet(self.b_distribution[stage][stren]))
                 elif r == self.CHECK:
                     return (self.CHECK, 0)
+                elif r == self.BET_1:
+                    return (self.BET_1, self.bet_dt[self.BET_1])
+                elif r == self.BET_2:
+                    return (self.BET_1, self.bet_dt[self.BET_2])
+                elif r == self.BET_3:
+                    return (self.BET_1, self.bet_dt[self.BET_3])
+                elif r == self.BET_4:
+                    return (self.BET_1, self.bet_dt[self.BET_4])
+                elif r == self.BET_5:
+                    return (self.BET_1, self.bet_dt[self.BET_5])
+                elif r == self.BET_6:
+                    return (self.BET_1, self.bet_dt[self.BET_6])
+                elif r == self.BET_7:
+                    return (self.BET_1, self.bet_dt[self.BET_7])
+                elif r == self.BET_8:
+                    return (self.BET_1, self.bet_dt[self.BET_8])
                     
 
         if len(board) == 0:
