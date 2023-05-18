@@ -30,19 +30,17 @@ class Player:
     BET_4 = 5
     BET_5 = 6
     BET_6 = 7
-    BET_7 = 8
-    BET_8 = 9
     RAISE_1 = 10
     RAISE_2 = 11
     RAISE_3 = 12
     RAISE_4 = 13
     CHECK = 14
 
-    ACTIONS = [FOLD, CALL, BET_1, BET_2, BET_3, BET_4, BET_5, BET_6, BET_7, BET_8, RAISE_1, RAISE_2, RAISE_3, RAISE_4, CHECK]
+    ACTIONS = [FOLD, CALL, BET_1, BET_2, BET_3, BET_4, BET_5, BET_6, RAISE_1, RAISE_2, RAISE_3, RAISE_4, CHECK]
 
-    bet_arr = [1/3, 1/2, 2/3, 1, 1.5, 2, 3, 4]
+    bet_arr = [1/3, 1/2, 2/3, 1, 1.5, 2]
 
-    bet_dt = {BET_1 : 1/3, BET_2 : 1/2, BET_3 : 2/3, BET_4: 1, BET_5 : 1.5, BET_6 : 2, BET_7 : 3, BET_8 : 4}
+    bet_dt = {BET_1 : 1/3, BET_2 : 1/2, BET_3 : 2/3, BET_4: 1, BET_5 : 1.5, BET_6 : 2}
 
     raise_arr = [2/3, 1.5, 2.5, 4]
 
@@ -172,26 +170,23 @@ class Player:
                 elif r == self.RAISE_4:
                     return (self.RAISE_2, self.raise_dt[self.RAISE_4])
             else:
-                if r == self.RAISE or r == self.FOLD or r == self.CALL:
+                if r >= self.RAISE_1 and r <= self.RAISE_4 or r == self.FOLD or r == self.CALL:
                     determine_action(dist, b)
                 elif r == self.CHECK:
                     return (self.CHECK, 0)
                 elif r == self.BET_1:
                     return (self.BET_1, self.bet_dt[self.BET_1])
                 elif r == self.BET_2:
-                    return (self.BET_1, self.bet_dt[self.BET_2])
+                    return (self.BET_2, self.bet_dt[self.BET_2])
                 elif r == self.BET_3:
-                    return (self.BET_1, self.bet_dt[self.BET_3])
+                    return (self.BET_3, self.bet_dt[self.BET_3])
                 elif r == self.BET_4:
-                    return (self.BET_1, self.bet_dt[self.BET_4])
+                    return (self.BET_4, self.bet_dt[self.BET_4])
                 elif r == self.BET_5:
-                    return (self.BET_1, self.bet_dt[self.BET_5])
+                    return (self.BET_5, self.bet_dt[self.BET_5])
                 elif r == self.BET_6:
-                    return (self.BET_1, self.bet_dt[self.BET_6])
-                elif r == self.BET_7:
-                    return (self.BET_1, self.bet_dt[self.BET_7])
-                elif r == self.BET_8:
-                    return (self.BET_1, self.bet_dt[self.BET_8])
+                    return (self.BET_6, self.bet_dt[self.BET_6])
+                
                     
 
         if len(board) == 0:
