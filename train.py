@@ -10,7 +10,6 @@ from tqdm import tqdm, trange
 
 from agent import Agent
 import ai
-import utils
 from state import PokerState
 from player import Player
 
@@ -34,14 +33,14 @@ def print_strategy(strategy: Dict[str, Dict[str, int]]):
 
 
 def simple_search(
-    config: Dict[str, int],
-    save_path: Path,
+    # config: Dict[str, int],
+    # save_path: Path,
     strategy_interval: int,
     n_iterations: int,
     lcfr_threshold: int,
     discount_interval: int,
-    c: int,
-    dump_iteration: int,
+    # c: int,
+    # dump_iteration: int,
     update_threshold: int,
 ):
     """
@@ -89,17 +88,18 @@ def simple_search(
                 for a in agent.regret[I].keys():
                     agent.regret[I][a] *= d
                     agent.strategy[I][a] *= d
-        if (t > update_threshold) & (t % dump_iteration == 0):
-            # dump the current strategy (sigma) throughout training and then
-            # take an average. This allows for estimation of expected value in
-            # leaf nodes later on using modified versions of the blueprint
-            # strategy.
-            ai.serialise(
-                agent=agent, save_path=save_path, t=t, server_state=config,
-            )
+        # if (t > update_threshold) & (t % dump_iteration == 0):
+        #     # dump the current strategy (sigma) throughout training and then
+        #     # take an average. This allows for estimation of expected value in
+        #     # leaf nodes later on using modified versions of the blueprint
+        #     # strategy.
+        #     ai.serialise(
+        #         agent=agent, save_path=save_path, t=t, server_state=config,
+        #     )
 
     print_strategy(agent.strategy)
 
 
 if __name__ == "__main__":
-    train()
+    simple_search(strategy_interval=20,n_iterations=150,lcfr_threshold=400,discount_interval=400,update_threshold=400)
+                  

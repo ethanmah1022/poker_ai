@@ -130,7 +130,7 @@ class Player:
 
     def is_all_in(self) -> bool:
         """Return if the player is all in or not."""
-        return self.is_active and self.n_bigblinds == 0
+        return self.is_active and self.n_bigblinds <= 0
 
     def take_action(self, board, bets):
         """All poker strategy is implemented here.

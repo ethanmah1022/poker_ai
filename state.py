@@ -248,7 +248,8 @@ class PokerState(object):
                 for betting_stage, actions in self._history.items()
             ],
         }
-        return json.dumps(info_set_dict, separators=(",", ":"))
+        print(info_set_dict)
+        return json.dumps(info_set_dict)
 
     @property
     def is_terminal(self) -> bool:
@@ -288,7 +289,9 @@ class PokerState(object):
                 # check, bet 1/3,1/2,2/3,1,2x pot
                 actions += [Player.CHECK] + Player.ACTIONS_BET
             else:
-                actions += [Player.FOLD, Player.CALL] + Player.ACTIONS_RAISE
+                actions += [Player.FOLD, Player.CALL]
+                if self.current_player.n_bigblinds >= self._poker_engine.pot*1.5:
+                    actions += Player.ACTIONS_RAISE
         else:
             actions += [None]
         return actions

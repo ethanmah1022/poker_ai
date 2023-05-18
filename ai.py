@@ -145,7 +145,7 @@ def cfr(agent: Agent, state: PokerState, i: int, t: int,):
             new_state: PokerState = state.apply_action(action)
             voa[action] = cfr(agent, new_state, i, t)
             vo += sigma[action] * voa[action]
-
+        print(voa)
         this_info_sets_regret = agent.regret.get(
             state.info_set, state.initial_regret)
         for action in state.legal_actions:
@@ -159,8 +159,8 @@ def cfr(agent: Agent, state: PokerState, i: int, t: int,):
         sigma = calculate_strategy(this_info_sets_regret)
         available_actions: List[str] = list(sigma.keys())
         action_probabilities: List[float] = list(sigma.values())
-        action: str = np.random.choice(
-            available_actions, p=action_probabilities)
+        action: str = int(np.random.choice(
+            available_actions, p=action_probabilities))
         new_state: PokerState = state.apply_action(action)
         return cfr(agent, new_state, i, t)
 
